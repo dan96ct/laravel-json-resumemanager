@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\PublishController;
 use App\Http\Controllers\ResumeController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
@@ -22,5 +23,9 @@ Route::get('/', function () {
 Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
+Route::post('/publishes/preview', [PublishController::class, 'preview'])->name('publishes.preview');
+
+Route::resource('publishes', PublishController::class);
 
 Route::resource('resumes', ResumeController::class);

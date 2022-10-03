@@ -46,6 +46,16 @@ services:
         volumes:
             - ./:/app
         command: sh -c "composer install --ignore-platform-reqs --no-scripts && composer update"
-
+        
+    fakeapi:
+        image: node:12-alpine
+        working_dir: /app
+        volumes:
+            - ./fake/jsonresume-api:/app
+        ports:
+            - 8081:8081
+        environment:
+            PORT: 8081
+        command: sh -c "npm i && npm start"
 volumes:
     db-data:

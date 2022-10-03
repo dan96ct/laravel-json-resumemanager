@@ -4,6 +4,8 @@ namespace App\Console;
 
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+use Illuminate\Support\Facades\Http;
+use App\Models\Theme;
 
 class Kernel extends ConsoleKernel
 {
@@ -25,8 +27,12 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         $schedule->call(function(){
-            
-        })->everyMinute();
+            $jsonResumeApi = config('services.jsonresume.api');
+            $response = Http::get("$jsonResumeApi/themes");
+            foreach ($response->json() as $theme) {
+                Theme::firstOrCreate(compact('theme'));
+            }
+        })->everySixHours();
     }
 
     /**

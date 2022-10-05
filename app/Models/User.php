@@ -44,4 +44,8 @@ class User extends Authenticatable
     public function resumes() {
         return $this->hasMany(Resume::class);
     }
+
+    public function publishes() {
+        return $this->hasMany(Publish::class);
+    }
 }

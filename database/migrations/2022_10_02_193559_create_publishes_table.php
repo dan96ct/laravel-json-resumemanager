@@ -17,7 +17,7 @@ class CreatePublishesTable extends Migration
             $table->id();
             $table->timestamps();
             $table->foreignId('user_id');
-            $table->foreignId('resume_id');
+            $table->foreignId('resume_id')->constrained();
             $table->foreignId('theme_id');
             $table->enum('visibility', ['public', 'private', 'hidden'])->default('public');
             $table->string('url');

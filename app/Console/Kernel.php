@@ -32,7 +32,7 @@ class Kernel extends ConsoleKernel
             foreach ($response->json() as $theme) {
                 Theme::firstOrCreate(compact('theme'));
             }
-        })->everySixHours();
+        })->everyMinute();
     }
 
     /**

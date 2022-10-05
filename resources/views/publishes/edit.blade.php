@@ -4,14 +4,23 @@
     <div class="container">
         <div class="border rounded">
             <div class="container my-3">
+            @if (isset($publish))
+                <form method="POST" action="{{ route('publishes.update', $publish->id) }}">
+                @method('PUT')
+            @else
                 <form method="POST" action="{{ route('publishes.store') }}">
+            @endif
                     @csrf
                     <div class="row">
                         <div class="form-group col-md-4">
                             <label>Resume</label>
                             <select id="resume" name="resume_id" class="form-control">
                                 @foreach ($resumes as $resume)
-                                    <option value="{{ $resume->id }}"> {{ $resume->title }}</option>
+                                    @if(isset($publish) && $publish->resume->id === $resume->id)
+                                        <option selected  value="{{ $resume->id }}"> {{ $resume->title }}</option>
+                                    @else
+                                        <option value="{{ $resume->id }}"> {{ $resume->title }}</option>
+                                    @endif
                                 @endforeach
                             </select>
                         </div>
@@ -20,7 +29,11 @@
                             <label>Theme</label>
                             <select id="theme" name="theme_id" class="form-control">
                                 @foreach ($themes as $theme)
-                                    <option value="{{ $theme->id }}"> {{ $theme->theme }}</option>
+                                    @if(isset($publish) && $publish->theme->id === $theme->id)
+                                        <option selected  value="{{ $theme->id }}"> {{ $theme->theme }}</option>
+                                    @else
+                                        <option value="{{ $theme->id }}"> {{ $theme->theme }}</option>
+                                    @endif
                                 @endforeach
                             </select>
                         </div>
@@ -29,7 +42,11 @@
                             <label>Visibility</label>
                             <select id="visibility" name="visibility" class="form-control">
                                 @foreach (['public', 'private', 'hidden'] as  $visibility)
-                                    <option value="{{ $visibility }}">{{ $visibility }}</option>
+                                    @if(isset($publish) && $publish->visibility === $visibility)
+                                        <option selected value="{{ $visibility }}">{{ $visibility }}</option>
+                                    @else
+                                        <option value="{{ $visibility }}">{{ $visibility }}</option>
+                                    @endif
                                 @endforeach
                             </select>
                         </div>
@@ -55,6 +72,8 @@
         const iframe = document.getElementById("iframe");
         const theme = document.getElementById("theme");
         const resume = document.getElementById("resume");
+        
+        await loadPreview(resume, theme);
 
         async function loadPreview(resume, theme){
             iframe.srcdoc = '<h1>Loading Preview... </h1>';

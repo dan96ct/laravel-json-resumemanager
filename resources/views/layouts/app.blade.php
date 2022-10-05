@@ -47,6 +47,18 @@
                 View Resumes
               </a>
             </li>
+             <li>
+              <a href="{{ route('publishes.create') }}">
+                <i class="fa fa-globe"></i>
+                New Publish
+              </a>
+            </li>
+            <li>
+              <a href="{{ route('publishes.index') }}">
+                <i class="fa fa-list-alt"></i>
+                View Publishes
+              </a>
+            </li>
           </ul>
 
           <!-- Right Side Of Navbar -->

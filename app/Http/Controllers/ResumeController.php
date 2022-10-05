@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreResume;
+use App\Models\Publish;
 use App\Models\Resume;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Http\Response;
 use Intervention\Image\Facades\Image;
@@ -35,8 +37,8 @@ class ResumeController extends Controller
      */
     public function create()
     {
-        //$resume = json_encode(Resume::factory()->make());
-        //return view('resumes.create', compact('resume'));
+        $resume = json_encode(Resume::factory()->make());
+        return view('resumes.create', compact('resume'));
         return view('resumes.create');
     }
 
@@ -134,7 +136,20 @@ class ResumeController extends Controller
     {
         $this->authorize('delete', $resume);
 
-        $resume->delete();
+        try{
+            $resume->delete();
+        } catch(QueryException $e){
+            $publish = Publish::where('resume_id', $resume->id)->first();
+            return redirect()->route('resumes.index')->with('alert',[
+                'type' => 'danger',
+                'messages' => [
+                    "Resume $resume->title cannot be deleted because
+                    publish <a href='$publish->url'>$publish->url</a> 
+                    is using it! Delete the publish first!"
+                ]
+                ]);
+        }
+        
         
         $resumes = auth()->user()->resumes;
 

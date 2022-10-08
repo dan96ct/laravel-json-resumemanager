@@ -9,6 +9,7 @@ use Illuminate\Http\Client\Response as ClientResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 class PublishController extends Controller
 {
@@ -21,7 +22,7 @@ class PublishController extends Controller
 
     public function __construct()
     {
-        $this->middleware('auth');
+        $this->middleware('auth', ['except' => 'show']);
         $this->jsonResumeApi = config('services.jsonresume.api');
     }
     /**
@@ -30,7 +31,7 @@ class PublishController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function index()
-    {
+    {   
         $publishes = auth()->user()->publishes;
 
         return view('publishes.index', compact('publishes'));
@@ -67,7 +68,6 @@ class PublishController extends Controller
 
     public function render(Resume $resume, Theme $theme){
         $theme->theme = str_replace("jsonresume-theme-", "", $theme->theme);
-        print_r($theme->theme);
         $response = Http::post("$this->jsonResumeApi/theme/$theme->theme", [
             'resume' => $resume->content
         ]);
@@ -87,7 +87,12 @@ class PublishController extends Controller
             $data,
             ['url' => 'tmp']
         ));
-        $url = route('publishes.show', $publish->id);
+        if($data['visibility'] == 'hidden'){
+            $url = route('publishes.show', Str::uuid());
+        } else {
+            $url = route('publishes.show', $publish->id);
+        }
+        
         $publish->update(compact('url'));
 
         $resume = Resume::where('id', $data['resume_id'])->first();
@@ -109,7 +114,16 @@ class PublishController extends Controller
      */
     public function show(Publish $publish)
     {
-        //
+        if($publish->visibility === 'private'){
+            if(!auth()->check()){
+                return redirect()->route('login');
+            }
+            if(auth()->user()->id !== $publish->user->id){
+                abort(Response::HTTP_FORBIDDEN);
+            }
+        }
+
+        return $this->render($publish->resume, $publish->theme);
     }
 
     /**
@@ -142,6 +156,14 @@ class PublishController extends Controller
     {
         $this->authorize('update', $publish);
         $data = $request->validate($this->rules);
+        
+        if($data['visibility'] == 'hidden'){
+            $url = route('publishes.show', Str::uuid());
+        } else {
+            $url = route('publishes.show', $publish->id);
+        }
+        $data['url'] = $url;
+
         $publish->update($data);
 
         return redirect()->route('publishes.index')->with('alert',[
@@ -150,6 +172,17 @@ class PublishController extends Controller
         ]);
     }
 
+    public function hidden(Request $request, $url){
+
+        $publish = Publish::where('url', route('publishes.show', $url) )->first();
+
+        if($publish){
+            return $this->render($publish->resume, $publish->theme);
+        } else {
+            abort(Response::HTTP_NOT_FOUND);
+        }
+        
+    }
     /**
      * Remove the specified resource from storage.
      *

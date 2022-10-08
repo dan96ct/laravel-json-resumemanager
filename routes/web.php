@@ -24,6 +24,8 @@ Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
+Route::get('/publishes/{url}', [PublishController::class, 'hidden']);
+
 Route::post('/publishes/preview', [PublishController::class, 'preview'])->name('publishes.preview');
 
 Route::resource('publishes', PublishController::class);

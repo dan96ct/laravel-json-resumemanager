@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\ResumePublished;
 use App\Models\Publish;
 use App\Models\Theme;
 use App\Models\Resume;
 use Illuminate\Http\Client\Response as ClientResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
 class PublishController extends Controller
@@ -98,6 +101,8 @@ class PublishController extends Controller
         $resume = Resume::where('id', $data['resume_id'])->first();
         $theme = $publish->theme()->get()->first();
 
+        Mail::to($request->user())->send(new ResumePublished($resume));
+        
         return redirect()->route('publishes.index')->with('alert',[
             'type' => 'success',
             'messages' => [
@@ -123,7 +128,18 @@ class PublishController extends Controller
             }
         }
 
-        return $this->render($publish->resume, $publish->theme);
+        
+
+
+        $key = "publish $publish->id";
+        if(!Cache::has($key)){
+            $res =  $this->render($publish->resume, $publish->theme);
+            if($res->status() !== 200){
+                return $res;
+            }
+            Cache::put($key, $res, now()->addMinutes(30));
+        }
+        return Cache::get($key);
     }
 
     /**
